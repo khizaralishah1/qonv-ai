@@ -18,17 +18,17 @@ module config_wb
     output 	[DWIDTH-1:0] 	wbs_dat_o,
 	
 	// 
-	input					done,
-	output					start,
+	input					done
+	// output  				start,
 
-	output 		[2:0]		kern_cols,
-	output		[7:0]		cols,
-	output		[2:0]		kerns,
-	output		[7:0]		stride,
-	output					kern_addr_mode,
-	output		[7:0]		result_cols,
-	output		[3:0]		shift,
-	output					en_max_pool
+	// output 		[2:0]		kern_cols,
+	// output		[7:0]		cols,
+	// output		[2:0]		kerns,
+	// output		[7:0]		stride,
+	// output					kern_addr_mode,
+	// output		[7:0]		result_cols,
+	// output		[3:0]		shift,
+	// output					en_max_pool
 	
 	);
 	
@@ -68,14 +68,14 @@ module config_wb
     end
 
 	// Specific mappings to configurations
-	assign start			= regs[0][1];
-	assign kern_cols		= regs[1][2:0];
-    assign cols				= regs[1][15:8];
-    assign kerns			= regs[1][18:16];
-    assign stride			= regs[1][31:24];
-    assign kern_addr_mode	= regs[2][0];
-    assign result_cols		= regs[2][7:0];
-    assign shift			= regs[2][11:8];
-    assign en_max_pool		= regs[2][16];
+	// assign start			= regs[0][1];
+	// assign kern_cols		= regs[1][2:0];
+    // assign cols				= regs[1][15:8];
+    // assign kerns			= regs[1][18:16];
+    // assign stride			= regs[1][31:24];
+    // assign kern_addr_mode	= regs[2][0];
+    // assign result_cols		= regs[2][7:0];
+    // assign shift			= regs[2][11:8];
+    // assign en_max_pool		= regs[2][16];
 
 endmodule

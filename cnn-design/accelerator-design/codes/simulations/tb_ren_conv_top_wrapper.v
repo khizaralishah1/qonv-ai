@@ -1,5 +1,6 @@
 //`include "../verilog/ren_conv_top_wrapper.v"
 //`include "store_image.v"
+//`include "./config_wb.v"
 
 module tb_ren_conv_top_wrapper;
 	parameter NO_OF_INSTS		= 4;
@@ -24,15 +25,16 @@ module tb_ren_conv_top_wrapper;
 	reg				clk;
 	reg				reset;
 
+	reg				start;
 	reg		[2:0]	kern_cols;
 	reg		[7:0]	cols;
 	reg		[2:0]	kerns;
 	reg		[7:0]	stride;
 	reg				kern_addr_mode;
-	reg		[7:0]	result_cols;
 	reg		[3:0]	shift;
 	reg				en_max_pool;
 	reg		[2:0]	mask;
+	reg		[7:0]	result_cols;
 
 	reg		[23:0]	image[0:31];
 	reg		[23:0]	kernels[0:31];
@@ -48,6 +50,40 @@ module tb_ren_conv_top_wrapper;
 
 	integer i,iter;
 
+	//Wishbone module initialize
+	// config_wb
+	// #(
+	// 	.DWIDTH(32),
+	// 	.DEPTH(4)
+	// )
+	// wb_instance
+	// (
+	
+    // // Wishbone Slave ports (WB MI A)
+    // wb_clk_i,
+    // wb_rst_i,
+    // wbs_stb_i,
+    // wbs_cyc_i,
+    // wbs_we_i,
+    // wbs_sel_i,
+    // wbs_dat_i,
+    // wbs_adr_i,
+    // wbs_ack_o,
+    // wbs_dat_o,
+	
+	// // 
+	// done
+	// // start,
+
+	// // kern_cols,
+	// // cols,
+	// // kerns,
+	// // stride,
+	// // kern_addr_mode,
+	// // result_cols,
+	// // shift,
+	// // en_max_pool
+	// );
 
 	ren_conv_top_wrapper
 	#(
@@ -358,9 +394,9 @@ endtask
 task write_image;
 input [7:0] inst_no;
 begin
-	for(i=0; i <32; i=i+1)
+	for(i=0; i < 32; i=i+1)
 	begin
-		wb_write(IMG_BASE_ADDR+ (inst_no << 24)+i*4, {8'd0,image[i]});
+		wb_write(IMG_BASE_ADDR + (inst_no << 24)+i*4, {8'd0, image[i]});
 	end
 end
 endtask
