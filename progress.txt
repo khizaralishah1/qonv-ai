@@ -1,2 +1,9 @@
 February 19:
 	Drawn diagrams for verilog modules
+
+February 24 (Saturday):
+	Debugged some wishbone signals
+	Debugged (and still in progress) why maxpool is giving wrong value
+
+February 27:
+	Reading book on FPGA in library
