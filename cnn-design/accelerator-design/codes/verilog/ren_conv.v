@@ -11,7 +11,7 @@ module ren_conv
 	parameter SHFT_WIDTH		= 4,
 	parameter IMG_DWIDTH		= 24,
 	parameter KERN_DWIDTH		= 24,
-	parameter RESULT_DWIDTH		= 8
+	parameter RESULT_DWIDTH		= 20
 	)
 	(
 	input								clk,
@@ -81,7 +81,7 @@ module ren_conv
 	#(
 	.IMG_DWIDTH 	(24	),
 	.KERN_DWIDTH 	(24	),
-	.RESULT_DWIDTH	(8	),
+	.RESULT_DWIDTH	(20	),
 	.SHFT_WIDTH		(4  )
 	)
 	datapath_inst

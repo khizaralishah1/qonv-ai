@@ -34,7 +34,8 @@ module ren_conv_top
 	wire 			we_kern_ram;
 	wire 			we_res_ram;
 	wire	[31:0]	data_out_regs;
-	wire	[7:0]	data_out_result;
+	//wire	[7:0]	data_out_result;
+	wire	[19:0]	data_out_result;
 	wire			clk;
 	wire			reset;
 	reg				ready;
@@ -56,7 +57,8 @@ module ren_conv_top
 	wire	[KERN_CNT_WIDTH+KERN_COL_WIDTH-1:0]	kern_addr;
 	wire	[IMG_ADDR_WIDTH-1:0]				img_addr;
 	wire	[RSLT_ADDR_WIDTH-1:0]				result_addr;
-	wire	[7:0]	result_data;
+	//wire	[7:0]	result_data;
+	wire	[19:0]	result_data;
 	wire			result_valid;
 	
 	assign clk 		= wb_clk_i;
@@ -177,7 +179,7 @@ module ren_conv_top
 
 	dffram
 	#(
-	.DWIDTH (8),
+	.DWIDTH (20),
 	.AWIDTH (6 )
 	)
 	results_dffram

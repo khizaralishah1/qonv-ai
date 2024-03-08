@@ -7,7 +7,7 @@ module datapath
 	#(
 	parameter IMG_DWIDTH 	= 24,
 	parameter KERN_DWIDTH 	= 24,
-	parameter RESULT_DWIDTH	= 8,
+	parameter RESULT_DWIDTH	= 20,
 	parameter SHFT_WIDTH	= 4
 	)
 	(
@@ -44,7 +44,7 @@ module datapath
 	reg		[20:0]	mult_accum_mux;
 	reg				clr_mult_accum;
 	
-	wire	[7:0]	shift_out;
+	wire	[19:0]	shift_out;
 	wire	[7:0]	max_pool_out;
 	wire			max_pool_valid;
 	wire 	[7:0] 	clr_col_cnt_d;
@@ -123,7 +123,8 @@ module datapath
 	shifter
 	#(
 	.IN_WIDTH	(20),
-	.SHFT_WIDTH	(SHFT_WIDTH)
+	.SHFT_WIDTH	(SHFT_WIDTH),
+	.OUT_WIDTH  (20)
 	)
 	shifter_inst
 	(
@@ -135,7 +136,7 @@ module datapath
 	// Max pool (optional)
 	max_pool
 	#(
-	.DWIDTH 		(8				)
+	.DWIDTH 		(20				)
 	)
 	max_pool_inst
 	(

@@ -1,26 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 		Renzym
-// Engineer: 		Yasir Javed
-// Design Name: 	Address Generation Unit
-// Module Name:		agu
-// Description: 	AGU generates BRAM address for 3xN convolution. It is assumed that image
-//					and kernels are stored in external BRAMs. The results are written  
-//					back to external BRAM too. Simlarly configurations are also assumed
-//					to be external. Based on configurations, this block will start
-//					working when start signal is asserted (level signal) and when done
-//					done signal will be asserted. There is an optional maxpool layer too.
-//
-//					Configs and BRAMs are kept external, so that this generic block can 
-//					remain independent and can mux between different configs and datas.
-//					It also keeps provision of making it cascadable open.
-//
-//					External config block also ensures that there can be different such 
-//					blocks for different interfaces (e.g. AXI, Wishbone etc.) without affecting
-//					rest of the design.
-// 
-// Dependencies:	Configs and BRAMs. 
-//
-//////////////////////////////////////////////////////////////////////////////////
 //`include "serial_shift.v"
 
 module agu

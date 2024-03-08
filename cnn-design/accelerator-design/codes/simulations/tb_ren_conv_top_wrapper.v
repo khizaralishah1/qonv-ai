@@ -38,8 +38,9 @@ module tb_ren_conv_top_wrapper;
 
 	reg		[23:0]	image[0:31];
 	reg		[23:0]	kernels[0:31];
-	reg		[7:0]	result_sim[0:31];
-	reg		[7:0]	result[0:31];
+	reg		[19:0]	result_sim[0:31];
+	//reg		[7:0]	result[0:31];
+	reg		[19:0]	result[0:31];
 
 	//real image
 	//store_image store_img0();
@@ -153,7 +154,7 @@ begin
 	load_data;
 
 	iter = 0;
-	repeat(NO_OF_INSTS)
+	//repeat(NO_OF_INSTS)
 	begin
 		write_image(iter);
 		write_kernel(iter);
@@ -169,6 +170,12 @@ begin
 		
 		wb_write(REG_BASE_ADDR+ (iter << 24),0);	// Clear Start
 		wb_write(REG_BASE_ADDR+ (iter << 24),2);	// Set soft reset
+
+		for(i = 0; i < 12; i = i + 1)
+		begin
+			#5
+			$display("result[%3d] ===> %10d", i, result[i]);
+		end
 		
 		for(i=0; i <32; i=i+1)
 		begin
@@ -180,15 +187,23 @@ begin
 	end
 	$display("STATUS: Simulation complete");
 
-	for(i = 0; i < 32; i = i + 1)
+	for(i = 0; i < 12; i = i + 1)
 	begin
-		$display("r[%3d] ===> %10d\n", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i]);
+		#5
+		$display("r[%3d] ===> %10d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i]);
 	end
 
-	for(i = 0; i < 32; i = i + 1)
-	begin
-		$display("maxp inputs %8b\n and out = %b", ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.shift_out, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.result_data);
-	end
+	// for(i = 0; i < 32; i = i + 1)
+	// begin
+	// 	$display("maxp inputs %8b\n and out = %b", ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.shift_out, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.result_data);
+	// end
+
+	// for(i = 0; i < 100; i = i + 1)
+	// begin
+	// 	$display("shifter input %20b", ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.mult_accum);
+	// 	#1
+	// 	$display("and out = %20b\n", ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.shift_out);
+	// end
 
 	// $display("STATUS: image[i]");
 
@@ -210,10 +225,11 @@ begin
     kerns				= 3;
     stride				= 1;
     kern_addr_mode		= 0;
-    shift				= 12;
+    shift				= 0; // 12
     en_max_pool			= 1;
     mask				= 3'b111;
     result_cols			= en_max_pool ? cols*kerns/2 : cols*kerns;
+	$display("\n\n\n\n\n\n--------------------------------------------------------------------------");
 	end
 	else if(test_no==1)		// Typical case with even cols and max pool enabled
 	begin
@@ -222,7 +238,7 @@ begin
     kerns				= 3;
     stride				= 1;
     kern_addr_mode		= 0;
-    shift				= 12;
+    shift				= 0; // 12
     en_max_pool			= 1;
     mask				= 3'b111;
     result_cols			= en_max_pool ? cols*kerns/2 : cols*kerns;
@@ -234,7 +250,7 @@ begin
     kerns				= 3;
     stride				= 1;
     kern_addr_mode		= 0;
-    shift				= 12;
+    shift				= 0; // 12
     en_max_pool			= 1;
     mask				= 3'b111;
     result_cols			= en_max_pool ? cols*kerns/2 : cols*kerns;
@@ -246,7 +262,7 @@ begin
     kerns				= 3;
     stride				= 1;
     kern_addr_mode		= 0;
-    shift				= 12;
+    shift				= 0; // 12
     en_max_pool			= 1;
     mask				= 3'b111;
     result_cols			= en_max_pool ? cols*kerns/2 : cols*kerns;
@@ -316,7 +332,7 @@ begin
 	for(i=0; i <result_cols; i=i+1)
 	begin
 		wb_read(RES_BASE_ADDR+ (inst_no << 24)+i*4, result[i]);
-		$display("result[%2d] --> %10d\n", i, result[i]);
+		//$display("result[%2d] --> %10d\n", i, result[i]);
 	end
 		
 end
@@ -338,7 +354,7 @@ begin
 								 mask[0] * (image[c+kc][ 7:0 ]*kernels[ks*(4<<kern_addr_mode)+kc][ 7:0 ]) +
 								 mask[1] * (image[c+kc][15:8 ]*kernels[ks*(4<<kern_addr_mode)+kc][15:8 ]) +
 								 mask[2] * (image[c+kc][23:16]*kernels[ks*(4<<kern_addr_mode)+kc][23:16]);
-				$display("conv_result[%2d] => %10d\n", c+ks*cols, conv_result[c+ks*cols]);
+				//$display("conv_result[%2d] => %10d\n", c+ks*cols, conv_result[c+ks*cols]);
 		
 				if(VERBOSE>2)$display("conv[%2d] = %6d, ks %0d, c %0d, kc %0d, image %h kernel %h", 
 									  c+ks*cols, conv_result[c+ks*cols],ks, c, kc, 
@@ -354,7 +370,8 @@ begin
 			for(c=0; c<cols;c=c+2)
 			begin
 				result_sim[ks*cols/2 + c/2] =  (conv_result[ks*cols + c] > conv_result[ks*cols + c+1]) ? conv_result[ks*cols + c] : conv_result[ks*cols + c+1];
-				$display("conv_result[%2d] (%2d) > conv_result[%2d] (%2d)---> result_sim[%2d] = %5d\n", ks*cols + c, conv_result[ks*cols + c], ks*cols + c + 1, conv_result[ks*cols + c + 1], ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
+				//$display("conv_result[%2d] (%2d) > conv_result[%2d] (%2d)---> result_sim[%2d] = %5d\n", ks*cols + c, conv_result[ks*cols + c], ks*cols + c + 1, conv_result[ks*cols + c + 1], ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
+				//$display("actual result aana chaiye: %10d\n", ( (conv_result[ks*cols + c] > conv_result[ks*cols + c+1]) ? conv_result[ks*cols + c] : conv_result[ks*cols + c+1]) );
 				//$display("lt_sum[%2d] = %5d\n", ....);
 				
 				if(VERBOSE>1)$display("result_sim[%0d] = %0d", ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
@@ -387,21 +404,21 @@ begin
 	//Data loading from real image
 
 	//         sim cod in main file
-	strvar1 = "../../../mnist_bin/training/0/40099";
+	strvar1 = "../../../mnist_bin/training/0/40099"; // 28457
 
 	$readmemb(strvar1, loaded_img);
 
 	for(i = 0; i < 96; i = i + 1)
 	begin
-		$display("loaded_img[%2d] = %10d\n", i, loaded_img[i]);
+		//$display("loaded_img[%2d] = %10d\n", i, loaded_img[i]);
 	end
 
 	for(i=0; i < 96; i=i+3)
 	begin
 		//$display("concat[%2d] = %24b\n", i, {loaded_img[i+2], loaded_img[i+1],loaded_img[i]});
 		image[i/3] =  {loaded_img[i+2], loaded_img[i+1],loaded_img[i]};
-		//$display("image[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
-		$display("image[%2d] => %2d, %2d, %2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
+		$display("image[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
+		//$display("image[%2d] => %2d, %2d, %2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
 		//$display("image[%2d] => %10d\n", i/3, image[i/3]);
 	end
 
@@ -409,7 +426,7 @@ begin
 	for(i=0; i <32; i=i+1)
 	begin
 		kernels[i] =  (1+i/4) + (1+i/4)*'h100 + (1+i/4)*'h10000;
-		$display("kernels[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i, kernels[i][23:16], kernels[i][15:8], kernels[i][7:0]);
+		//$display("kernels[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i, kernels[i][23:16], kernels[i][15:8], kernels[i][7:0]);
 	end
 
 end

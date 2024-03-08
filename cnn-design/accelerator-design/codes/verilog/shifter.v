@@ -2,11 +2,11 @@ module shifter
 	#(
 	parameter IN_WIDTH		= 20,
 	parameter SHFT_WIDTH	= 4,
-	parameter OUT_WIDTH		= 8
+	parameter OUT_WIDTH		= 20
 	)
 	(
 	input			[IN_WIDTH-1:0] 					in,
-	input			[SHFT_WIDTH-1:0] 				shift,
+	input			[SHFT_WIDTH-1:0] 				shift, // value 0
 	output	reg		[OUT_WIDTH-1:0]					out
     );
 

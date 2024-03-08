@@ -4,3 +4,8 @@ all:
 
 wave:
 	gtkwave ./wave.vcd ./sigs_wrapper.gtkw
+
+#tbshift: tb_shifter.v
+#	iverilog -o ./tb_shifter.vvp tb_shifter.v
+#	vvp ./tb_shifter.vvp
+	

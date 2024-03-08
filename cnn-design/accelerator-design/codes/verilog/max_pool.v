@@ -1,17 +1,6 @@
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 		Renzym
-// Engineer: 		Yasir Javed
-// Design Name: 	max_pool
-// Module Name:		Max Pool
-// Description: 	One dimentional Maxpool between two values, can be enabled/disabled
-//
-//					
-// Dependencies:	 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module max_pool
 	#(
-		parameter DWIDTH = 8
+		parameter DWIDTH = 20
 	)
 	(
 	input						clk,

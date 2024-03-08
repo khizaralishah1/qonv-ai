@@ -1,0 +1,54 @@
+$date
+	Fri Mar  8 13:43:42 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module tb_shifter $end
+$var wire 20 ! out [19:0] $end
+$var parameter 32 " IN_WIDTH $end
+$var parameter 32 # OUT_WIDTH $end
+$var parameter 32 $ SHFT_WIDTH $end
+$var reg 20 % in [19:0] $end
+$var reg 4 & shift [3:0] $end
+$var integer 32 ' i [31:0] $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b100 $
+b10100 #
+b10100 "
+$end
+#0
+$dumpvars
+b0 '
+b0 &
+b0 %
+b0 !
+$end
+#5
+b1 '
+#7
+b1 !
+b1 %
+#9
+b10 '
+#11
+b10 !
+b10 %
+#13
+b11 '
+#15
+b11 !
+b11 %
+#17
+b100 '
+#19
+b100 !
+b100 %
+#21
+b101 '
