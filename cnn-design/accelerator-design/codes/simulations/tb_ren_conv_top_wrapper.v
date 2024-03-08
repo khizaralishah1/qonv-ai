@@ -159,11 +159,37 @@ begin
 		write_image(iter);
 		write_kernel(iter);
 		$display("-------- iteration %0d ----------",iter);
+
+		//
+		
+
+
 		calculate_results;
 		config_hw(iter,kern_cols-1,cols-1,kerns-1,stride,kern_addr_mode,result_cols-1,shift,en_max_pool,mask);
 		poll_done(iter);
-		repeat(10) @(posedge clk);
+		//repeat(10) @(posedge clk);
+		//repeat(200) @(posedge clk);
+
+		//--------------
+		@(posedge clk)
+		begin
+			for(i = 0; i < 12; i = i + 1)
+			begin
+				$display("r[%3d] ===> %10d, where input = %10d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.dat_i);
+			end
+			$display("-----------------------------------------------------------");
+		end
+		
 		readback_results(iter);
+
+		
+
+		// for(i = 0; i < 12; i = i + 1)
+		// begin
+		// 	#5
+		// 	$display("result[%3d] ===> %10d", i, result[i]);
+		// end
+
 		repeat(10) @(posedge clk);
 		compare_results;
 		//$display("---- iteration %0d complete -----",iter);
@@ -171,11 +197,11 @@ begin
 		wb_write(REG_BASE_ADDR+ (iter << 24),0);	// Clear Start
 		wb_write(REG_BASE_ADDR+ (iter << 24),2);	// Set soft reset
 
-		for(i = 0; i < 12; i = i + 1)
-		begin
-			#5
-			$display("result[%3d] ===> %10d", i, result[i]);
-		end
+		// for(i = 0; i < 12; i = i + 1)
+		// begin
+		// 	#5
+		// 	$display("result[%3d] ===> %10d", i, result[i]);
+		// end
 		
 		for(i=0; i <32; i=i+1)
 		begin
@@ -192,11 +218,6 @@ begin
 		#5
 		$display("r[%3d] ===> %10d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i]);
 	end
-
-	// for(i = 0; i < 32; i = i + 1)
-	// begin
-	// 	$display("maxp inputs %8b\n and out = %b", ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.shift_out, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.result_data);
-	// end
 
 	// for(i = 0; i < 100; i = i + 1)
 	// begin
@@ -226,7 +247,8 @@ begin
     stride				= 1;
     kern_addr_mode		= 0;
     shift				= 0; // 12
-    en_max_pool			= 1;
+    //en_max_pool			= 1;
+	en_max_pool			= 0;
     mask				= 3'b111;
     result_cols			= en_max_pool ? cols*kerns/2 : cols*kerns;
 	$display("\n\n\n\n\n\n--------------------------------------------------------------------------");
@@ -438,6 +460,12 @@ begin
 	for(i=0; i < 32; i=i+1)
 	begin
 		wb_write(IMG_BASE_ADDR + (inst_no << 24)+i*4, {8'd0, image[i]});
+	end
+
+	$display("IMAGE DFFRAM\n");
+	for(i=0; i < 32; i=i+1)
+	begin
+		$display("img[%2d] =  %10d %10d %10d\n", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
 	end
 end
 endtask

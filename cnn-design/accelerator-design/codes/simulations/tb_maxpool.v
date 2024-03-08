@@ -1,5 +1,7 @@
+`include "../verilog/max_pool.v"
+
 module tb_maxpool;
-	parameter DWIDTH = 8;
+	parameter DWIDTH = 20;
 	reg						clk;
 	reg						reset;
 	reg						en_maxpool;
@@ -11,7 +13,7 @@ module tb_maxpool;
 	integer					i;
 	max_pool
 	#(
-		.DWIDTH 	(8			)
+		.DWIDTH 	(20 		)
 	)
 	max_pool_inst
 	(
@@ -49,10 +51,18 @@ module tb_maxpool;
 		repeat(10) @(posedge clk);
 		
 		#1 valid_in = 1;
-		for(i=1; i <20; i=i+1)
+
+		@(posedge clk);
+		$display("\ninitial in = %10d\nou = %10d\n", data_in, data_out);
+
+
+		for(i = 1; i < 5; i = i + 1)
 		begin
 			@(posedge clk);
 			#1 data_in = i;
+			@(posedge clk);
+			@(posedge clk);
+			$display("\nin = %10d\nou = %10d\n", data_in, data_out);
 		end
 		#1 valid_in = 0;
 					

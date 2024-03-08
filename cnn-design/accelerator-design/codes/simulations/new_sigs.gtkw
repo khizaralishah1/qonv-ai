@@ -1,14 +1,14 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Fri Mar  8 11:49:14 2024
+[*] Fri Mar  8 12:11:25 2024
 [*]
 [dumpfile] "./wave.vcd"
-[dumpfile_mtime] "Fri Mar  8 11:47:09 2024"
+[dumpfile_mtime] "Fri Mar  8 12:10:57 2024"
 [dumpfile_size] 267721
-[savefile] "./sigs_wrapper.gtkw"
+[savefile] "/Users/khizeralishah/fyp/cnn-design/accelerator-design/codes/simulations/new_sigs.gtkw"
 [timestart] 2545
 [size] 1384 847
-[pos] 64 -1
+[pos] 64 0
 *-4.873282 2695 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb_ren_conv_top_wrapper.
 [treeopen] tb_ren_conv_top_wrapper.ren_conv_top_wrapper_inst.
