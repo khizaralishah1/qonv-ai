@@ -180,10 +180,15 @@ begin
 	end
 	$display("STATUS: Simulation complete");
 
-	// for(i = 0; i < 96; i = i + 1)
-	// begin
-	// 	$display("%8b\n", loaded_img[i]);
-	// end
+	for(i = 0; i < 32; i = i + 1)
+	begin
+		$display("r[%3d] ===> %10d\n", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i]);
+	end
+
+	for(i = 0; i < 32; i = i + 1)
+	begin
+		$display("maxp inputs %8b\n and out = %b", ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.shift_out, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.datapath_inst.result_data);
+	end
 
 	// $display("STATUS: image[i]");
 
@@ -309,7 +314,11 @@ task readback_results;
 input [7:0] inst_no;
 begin
 	for(i=0; i <result_cols; i=i+1)
+	begin
 		wb_read(RES_BASE_ADDR+ (inst_no << 24)+i*4, result[i]);
+		$display("result[%2d] --> %10d\n", i, result[i]);
+	end
+		
 end
 endtask
 //-----------------------------------------------------------------------------
@@ -318,17 +327,19 @@ reg [20:0] conv_result [0:31];
 integer ks, c,kc;
 begin
 	// convolve
-	for(ks=0; ks<kerns;ks=ks+1) // 2
+	for(ks=0; ks<kerns;ks=ks+1) // 3
 	begin
-		for(c=0; c<cols;c=c+1) // 0 to 7
+		for(c=0; c<cols;c=c+1) // 0 to 7 = 8
 		begin
 			conv_result[c+ks*cols] = 0; // 16 to 23
-			for(kc=0;kc<kern_cols;kc=kc+1) // 0 to 3
+			for(kc=0;kc<kern_cols;kc=kc+1) // 0 to 2
 			begin // 8 bit each
 				conv_result[c+ks*cols] = conv_result[c+ks*cols] +
 								 mask[0] * (image[c+kc][ 7:0 ]*kernels[ks*(4<<kern_addr_mode)+kc][ 7:0 ]) +
 								 mask[1] * (image[c+kc][15:8 ]*kernels[ks*(4<<kern_addr_mode)+kc][15:8 ]) +
 								 mask[2] * (image[c+kc][23:16]*kernels[ks*(4<<kern_addr_mode)+kc][23:16]);
+				$display("conv_result[%2d] => %10d\n", c+ks*cols, conv_result[c+ks*cols]);
+		
 				if(VERBOSE>2)$display("conv[%2d] = %6d, ks %0d, c %0d, kc %0d, image %h kernel %h", 
 									  c+ks*cols, conv_result[c+ks*cols],ks, c, kc, 
 									  image[c+kc], kernels[ks*(4<<kern_addr_mode)+kc]);
@@ -343,6 +354,9 @@ begin
 			for(c=0; c<cols;c=c+2)
 			begin
 				result_sim[ks*cols/2 + c/2] =  (conv_result[ks*cols + c] > conv_result[ks*cols + c+1]) ? conv_result[ks*cols + c] : conv_result[ks*cols + c+1];
+				$display("conv_result[%2d] (%2d) > conv_result[%2d] (%2d)---> result_sim[%2d] = %5d\n", ks*cols + c, conv_result[ks*cols + c], ks*cols + c + 1, conv_result[ks*cols + c + 1], ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
+				//$display("lt_sum[%2d] = %5d\n", ....);
+				
 				if(VERBOSE>1)$display("result_sim[%0d] = %0d", ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
 			end
 		end
@@ -377,15 +391,25 @@ begin
 
 	$readmemb(strvar1, loaded_img);
 
+	for(i = 0; i < 96; i = i + 1)
+	begin
+		$display("loaded_img[%2d] = %10d\n", i, loaded_img[i]);
+	end
+
 	for(i=0; i < 96; i=i+3)
 	begin
+		//$display("concat[%2d] = %24b\n", i, {loaded_img[i+2], loaded_img[i+1],loaded_img[i]});
 		image[i/3] =  {loaded_img[i+2], loaded_img[i+1],loaded_img[i]};
+		//$display("image[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
+		$display("image[%2d] => %2d, %2d, %2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
+		//$display("image[%2d] => %10d\n", i/3, image[i/3]);
 	end
 
 	// Dummy data for kernels
 	for(i=0; i <32; i=i+1)
 	begin
 		kernels[i] =  (1+i/4) + (1+i/4)*'h100 + (1+i/4)*'h10000;
+		$display("kernels[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i, kernels[i][23:16], kernels[i][15:8], kernels[i][7:0]);
 	end
 
 end
