@@ -6,7 +6,7 @@ module ren_conv_top_wrapper
 	parameter KERN_COL_WIDTH 	= 3,
 	parameter COL_WIDTH 		= 8,
 	parameter KERN_CNT_WIDTH 	= 3,
-	parameter IMG_ADDR_WIDTH 	= 6,
+	parameter IMG_ADDR_WIDTH 	= 8,//6,
 	parameter RSLT_ADDR_WIDTH 	= 6
 	)
 	(
@@ -100,7 +100,7 @@ always@*
 	.wbs_we_i		(wbs_we_i	),
 	.wbs_sel_i		(wbs_sel_i	),
 	.wbs_dat_i		(wbs_dat_i	),
-	.wbs_adr_i		(wbs_adr_i	),
+	.wbs_adr_i		(wbs_adr_i  ),
 	.wbs_ack_o		(wbs_ack_out_1),
 	.wbs_dat_o		(wbs_dat_out_1)
 	);

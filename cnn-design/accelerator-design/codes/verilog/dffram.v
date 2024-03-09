@@ -1,7 +1,7 @@
 module dffram
 	#(
 	parameter DWIDTH = 24,
-	parameter AWIDTH = 6
+	parameter AWIDTH = 8//6
 	)
 	(
 	input          				clk,

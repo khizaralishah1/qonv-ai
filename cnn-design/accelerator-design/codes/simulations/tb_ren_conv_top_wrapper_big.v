@@ -9,6 +9,8 @@ module tb_ren_conv_top_wrapper;
 	parameter KERN_CNT_WIDTH 	= 3;
 	parameter IMG_ADDR_WIDTH 	= 6;
 	parameter RSLT_ADDR_WIDTH 	= 6;
+	parameter IMG_SIZE          = 255;
+	parameter LOADED_IMG_SIZE   = IMG_SIZE/3;
 
     // Wishbone Slave ports (WB MI A)
     reg 			wb_clk_i;
@@ -36,16 +38,16 @@ module tb_ren_conv_top_wrapper;
 	reg		[2:0]	mask;
 	reg		[7:0]	result_cols;
 
-	reg		[23:0]	image[0:31];
+	reg		[23:0]	image[0:LOADED_IMG_SIZE];
 	reg		[23:0]	kernels[0:31];
-	reg		[19:0]	result_sim[0:31];
+	reg		[19:0]	result_sim[0:LOADED_IMG_SIZE];
 	//reg		[7:0]	result[0:31];
-	reg		[19:0]	result[0:31];
+	reg		[19:0]	result[0:LOADED_IMG_SIZE];
 
 	//real image
 	//store_image store_img0();
 	//reg [95:0] loaded_img;
-	reg [7:0] loaded_img [0:95];
+	reg [7:0] loaded_img [0:IMG_SIZE];
 
 	reg [8*100:0] strvar1;
 
@@ -207,8 +209,8 @@ begin
 	begin
 	kern_cols			= 2;
     //cols				= 8;
-	cols				= 32;
-    kerns				= 3;
+	cols				= LOADED_IMG_SIZE;
+    kerns				= 1; // 3
     stride				= 1;
     kern_addr_mode		= 0;
     shift				= 0; // 12
@@ -395,12 +397,12 @@ begin
 
 	$readmemb(strvar1, loaded_img);
 
-	for(i = 0; i < 96; i = i + 1)
-	begin
-		//$display("loaded_img[%2d] = %10d\n", i, loaded_img[i]);
-	end
+	// for(i = 0; i < 96; i = i + 1)
+	// begin
+	// 	//$display("loaded_img[%2d] = %10d\n", i, loaded_img[i]);
+	// end
 
-	for(i=0; i < 96; i=i+3)
+	for(i=0; i < IMG_SIZE; i=i+3)
 	begin
 		//$display("concat[%2d] = %24b\n", i, {loaded_img[i+2], loaded_img[i+1],loaded_img[i]});
 		image[i/3] =  {loaded_img[i+2], loaded_img[i+1],loaded_img[i]};
@@ -423,16 +425,16 @@ endtask
 task write_image;
 input [7:0] inst_no;
 begin
-	for(i=0; i < 32; i=i+1)
+	for(i=0; i < LOADED_IMG_SIZE; i=i+1)
 	begin
 		wb_write(IMG_BASE_ADDR + (inst_no << 24)+i*4, {8'd0, image[i]});
 	end
 
-	// $display("IMAGE DFFRAM\n");
-	// for(i=0; i < 32; i=i+1)
-	// begin
-	// 	$display("img[%2d] =  %10d %10d %10d\n", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
-	// end
+	$display("IMAGE DFFRAM\n");
+	for(i=0; i < LOADED_IMG_SIZE; i=i+1)
+	begin
+		$display("img[%2d] =  %10d %10d %10d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
+	end
 end
 endtask
 //-----------------------------------------------------------------------------

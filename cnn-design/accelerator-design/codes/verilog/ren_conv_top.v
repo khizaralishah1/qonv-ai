@@ -11,7 +11,7 @@ module ren_conv_top
 	parameter KERN_COL_WIDTH 	= 3,
 	parameter COL_WIDTH 		= 8,
 	parameter KERN_CNT_WIDTH 	= 3,
-	parameter IMG_ADDR_WIDTH 	= 6,
+	parameter IMG_ADDR_WIDTH 	= 8,//6,
 	parameter RSLT_ADDR_WIDTH 	= 6
 	)
 	(
@@ -148,7 +148,7 @@ module ren_conv_top
 	dffram
 	#(
 	.DWIDTH (24),
-	.AWIDTH (6 )
+	.AWIDTH (8)//(6 )
 	)
 	img_dffram
 	(
