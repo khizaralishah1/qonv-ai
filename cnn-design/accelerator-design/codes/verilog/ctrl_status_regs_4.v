@@ -1,17 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 		Renzym
-// Engineer: 		Yasir Javed
-// Design Name: 	ctrl_status_regs_4
-// Module Name:		Control and status regs 4
-// Description: 	This is generic block that allows 4 control and status regs each
-// 					of DWIDTH width. If a wrapper connects control pins with status
-//					pins its a regfile of 4 regs, but having control and status at
-//					ports allows to redefine contorl and status bits as required.
-//
-//					
-// Dependencies:	 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module ctrl_status_regs_4
 	#(
 		parameter DWIDTH = 32

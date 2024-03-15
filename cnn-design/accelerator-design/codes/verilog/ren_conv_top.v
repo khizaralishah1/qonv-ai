@@ -5,14 +5,14 @@
 
 module ren_conv_top
 	#(
-	parameter MY_ADDR			= 8'h30,
+	parameter MY_ADDR			= 8'b0011_0000,//8'h30,
 	parameter MY_ADDR_MSB		= 32,
 	parameter MY_ADDR_LSB		= 24,
 	parameter KERN_COL_WIDTH 	= 3,
 	parameter COL_WIDTH 		= 8,
 	parameter KERN_CNT_WIDTH 	= 3,
 	parameter IMG_ADDR_WIDTH 	= 8,//6,
-	parameter RSLT_ADDR_WIDTH 	= 6
+	parameter RSLT_ADDR_WIDTH 	= 8
 	)
 	(
     // Wishbone Slave ports (WB MI A)
@@ -28,6 +28,10 @@ module ren_conv_top
     output [31:0] 	wbs_dat_o
 
 	);
+
+	parameter WBS_START_ADDR = 2'b10; // 2
+	parameter WBS_END_ADDR   = 6'b01_0000; // 16
+	//[15:2] means 14 bits for address, which can store 2^14= 4K locations 
 
 	wire 			we_regs;
 	wire 			we_img_ram;
@@ -64,21 +68,26 @@ module ren_conv_top
 	assign clk 		= wb_clk_i;
 	assign reset	= wb_rst_i;
 
-
+						//addr = 8'h 3000_0000       [31:24] = 2'h30
+						//             3    0    0    0 _  0    0    0    0
+						//            31     24        16  15      8       2
+						//     = 32'b 0011_0000 0000_0000  0000_0000 0000_00  00
+						//     = 32'b 0011_0000 0000_0000 [0000_0000 0000_00] 00
     assign valid 	 = (wbs_adr_i[MY_ADDR_MSB-1:MY_ADDR_LSB] == MY_ADDR) & wbs_cyc_i & wbs_stb_i;
 //    assign wstrb 	 = wbs_sel_i & {(DWIDTH/8){wbs_we_i}};
     assign wbs_dat_o = rdata;
 	assign wbs_ack_o = ready;
 
-	assign we_regs 		= (wbs_adr_i[9:8]==0) & valid & wbs_we_i;
-	assign we_img_ram	= (wbs_adr_i[9:8]==1) & valid & wbs_we_i;
-	assign we_kern_ram	= (wbs_adr_i[9:8]==2) & valid & wbs_we_i;
-	assign we_res_ram	= (wbs_adr_i[9:8]==3) & valid & wbs_we_i;
+	assign we_regs 		= (wbs_adr_i[WBS_END_ADDR+1:WBS_END_ADDR]==0) & valid & wbs_we_i;
+	//assign we_img_ram	= (wbs_adr_i[9:8]==1) & valid & wbs_we_i;
+	assign we_img_ram	= (wbs_adr_i[WBS_END_ADDR+2:WBS_END_ADDR]==4) & valid & wbs_we_i;
+	assign we_kern_ram	= (wbs_adr_i[WBS_END_ADDR+1:WBS_END_ADDR]==2) & valid & wbs_we_i;
+	assign we_res_ram	= (wbs_adr_i[WBS_END_ADDR+1:WBS_END_ADDR]==3) & valid & wbs_we_i;
 
 	always@(posedge clk)
 		if(reset)					rdata <= 0;
-		else if(wbs_adr_i[9:8]==0)	rdata <= data_out_regs;
-		else if(wbs_adr_i[9:8]==3)	rdata <= data_out_result;
+		else if(wbs_adr_i[WBS_END_ADDR+1:WBS_END_ADDR]==0)	rdata <= data_out_regs;
+		else if(wbs_adr_i[WBS_END_ADDR+1:WBS_END_ADDR]==3)	rdata <= data_out_result;
 		
 	always@(posedge clk)
 		if(reset | ready)			ready <= 0;
@@ -157,14 +166,14 @@ module ren_conv_top
 	.dat_o		(				),
 	.dat_o2		(img_data		),
 	.dat_i		(wbs_dat_i[23:0]),
-	.adr_w		(wbs_adr_i[7:2]	),
+	.adr_w		(wbs_adr_i[WBS_END_ADDR - 1: WBS_START_ADDR]),//(wbs_adr_i[7:2]	),
 	.adr_r		(img_addr		)
 	);
 
 	dffram
 	#(
 	.DWIDTH (24),
-	.AWIDTH (6 )
+	.AWIDTH (8 )
 	)
 	kerns_dffram
 	(
@@ -173,14 +182,14 @@ module ren_conv_top
 	.dat_o		(				),
 	.dat_o2		(kern_data		),
 	.dat_i		(wbs_dat_i[23:0]),
-	.adr_w		(wbs_adr_i[7:2]	),
+	.adr_w		(wbs_adr_i[WBS_END_ADDR - 1: WBS_START_ADDR]), //[1:0] increases 4 step so [7:2] increments 1 step each time
 	.adr_r		(kern_addr		)
 	);
 
 	dffram
 	#(
 	.DWIDTH (20),
-	.AWIDTH (6 )
+	.AWIDTH (8 )
 	)
 	results_dffram
 	(
@@ -190,7 +199,7 @@ module ren_conv_top
 	.dat_o2		(data_out_result),
 	.dat_i		(result_data	),
 	.adr_w		(result_addr	),
-	.adr_r		(wbs_adr_i[7:2])
+	.adr_r		(wbs_adr_i[WBS_END_ADDR - 1: WBS_START_ADDR])//(wbs_adr_i[7:2]	),
 	);
 
 endmodule

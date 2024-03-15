@@ -11,6 +11,8 @@ module tb_ren_conv_top_wrapper;
 	parameter RSLT_ADDR_WIDTH 	= 8;
 	parameter IMG_SIZE          = 255;
 	parameter LOADED_IMG_SIZE   = IMG_SIZE/3;
+	parameter KERNEL_DEPTH      = 32;
+	parameter RESULT_DEPTH      = LOADED_IMG_SIZE;
 
     // Wishbone Slave ports (WB MI A)
     reg 			wb_clk_i;
@@ -39,10 +41,12 @@ module tb_ren_conv_top_wrapper;
 	reg		[7:0]	result_cols;
 
 	reg		[23:0]	image[0:LOADED_IMG_SIZE];
-	reg		[23:0]	kernels[0:31];
+	reg		[23:0]	kernels[0:KERNEL_DEPTH-1];
 	reg		[19:0]	result_sim[0:LOADED_IMG_SIZE];
 	//reg		[7:0]	result[0:31];
 	reg		[19:0]	result[0:LOADED_IMG_SIZE];
+
+	//reg 	[7:0]	result_depth;
 
 	//real image
 	//store_image store_img0();
@@ -120,11 +124,16 @@ begin
 	forever #5 clk = ~clk;
 end
 
+// parameter REG_BASE_ADDR 	= 32'h3000_0000;
+// //parameter IMG_BASE_ADDR 	= 32'h3000_0100;
+// parameter IMG_BASE_ADDR 	= 32'h3000_0400;
+// parameter KERN_BASE_ADDR 	= 32'h3000_0200;
+// parameter RES_BASE_ADDR 	= 32'h3000_0300;
 parameter REG_BASE_ADDR 	= 32'h3000_0000;
 //parameter IMG_BASE_ADDR 	= 32'h3000_0100;
-parameter IMG_BASE_ADDR 	= 32'h3000_0400;
-parameter KERN_BASE_ADDR 	= 32'h3000_0200;
-parameter RES_BASE_ADDR 	= 32'h3000_0300;
+parameter IMG_BASE_ADDR 	= 32'h3004_0000;
+parameter KERN_BASE_ADDR 	= 32'h3002_0000;
+parameter RES_BASE_ADDR 	= 32'h3003_0000;
 parameter VERBOSE			= 3;
 //-----------------------------------------------------------------------------
 // Main test bench
@@ -211,6 +220,7 @@ begin
     //cols				= 8;
 	cols				= LOADED_IMG_SIZE;
     kerns				= 1; // 3
+	//result_depth		= kerns * cols;
     stride				= 1;
     kern_addr_mode		= 0;
     shift				= 0; // 12
@@ -318,17 +328,17 @@ endtask
 task readback_results;
 input [7:0] inst_no;
 begin
-	for(i=0; i <result_cols; i=i+1)
+	for(i=0; i < result_cols; i=i+1)
 	begin
 		wb_read(RES_BASE_ADDR+ (inst_no << 24)+i*4, result[i]);
-		//$display("result[%2d] --> %10d\n", i, result[i]);
+		$display("addr = %4h ; result[%2d] --> %10d\n", RES_BASE_ADDR+ (inst_no << 24)+i*4, i, result[i]);
 	end
 		
 end
 endtask
 //-----------------------------------------------------------------------------
 task calculate_results;
-reg [20:0] conv_result [0:31];
+reg [20:0] conv_result [0: RESULT_DEPTH];
 integer ks, c,kc;
 begin
 	// convolve
@@ -413,9 +423,12 @@ begin
 	end
 
 	// Dummy data for kernels
-	for(i=0; i <32; i=i+1)
+	for(i=0; i < KERNEL_DEPTH; i = i + 1)
 	begin
-		kernels[i] =  (1+i/4) + (1+i/4)*'h100 + (1+i/4)*'h10000;
+		kernels[i] =  (1+i/4)*'h10000 + (1+i/4)*'h100 + (1+i/4);
+	//  i=0 to 3	'h         1 0000      100           1        = 1 _ 0000 _ 1001
+	//	i=4 to 7	'h         2 0000      200           1        = 2 _ 0000 _ 2002
+		//       
 		//$display("kernels[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i, kernels[i][23:16], kernels[i][15:8], kernels[i][7:0]);
 	end
 
@@ -441,8 +454,14 @@ endtask
 task write_kernel;
 input [7:0] inst_no;
 begin
-	for(i=0; i <32; i=i+1)
+	for(i=0; i < KERNEL_DEPTH; i=i+1)
 		wb_write(KERN_BASE_ADDR+ (inst_no << 24)+i*4, {8'd0,kernels[i]});
+	
+	$display("KERNEL DFFRAM\n");
+	for(i=0; i < KERNEL_DEPTH; i=i+1)
+	begin
+		$display("addr = %4h ; kerndff[%2d] =  %10d %10d %10d", KERN_BASE_ADDR+ (inst_no << 24)+i*4, i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][7:0]);
+	end
 end
 endtask
 //-----------------------------------------------------------------------------
