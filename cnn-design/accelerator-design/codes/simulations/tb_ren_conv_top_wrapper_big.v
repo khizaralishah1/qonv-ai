@@ -5,10 +5,10 @@
 module tb_ren_conv_top_wrapper;
 	parameter NO_OF_INSTS		= 4;
 	parameter KERN_COL_WIDTH 	= 3;
-	parameter COL_WIDTH 		= 8;
+	parameter COL_WIDTH 		= 8; // address width
 	parameter KERN_CNT_WIDTH 	= 3;
-	parameter IMG_ADDR_WIDTH 	= 6;
-	parameter RSLT_ADDR_WIDTH 	= 6;
+	parameter IMG_ADDR_WIDTH 	= 8;
+	parameter RSLT_ADDR_WIDTH 	= 8;
 	parameter IMG_SIZE          = 255;
 	parameter LOADED_IMG_SIZE   = IMG_SIZE/3;
 
@@ -49,8 +49,7 @@ module tb_ren_conv_top_wrapper;
 	//reg [95:0] loaded_img;
 	reg [7:0] loaded_img [0:IMG_SIZE];
 
-	reg [8*100:0] strvar1;
-
+	reg [8*64 - 1: 0] loaded_img_string;
 	integer i,iter;
 
 	//Wishbone module initialize
@@ -122,7 +121,8 @@ begin
 end
 
 parameter REG_BASE_ADDR 	= 32'h3000_0000;
-parameter IMG_BASE_ADDR 	= 32'h3000_0100;
+//parameter IMG_BASE_ADDR 	= 32'h3000_0100;
+parameter IMG_BASE_ADDR 	= 32'h3000_0400;
 parameter KERN_BASE_ADDR 	= 32'h3000_0200;
 parameter RES_BASE_ADDR 	= 32'h3000_0300;
 parameter VERBOSE			= 3;
@@ -393,9 +393,9 @@ begin
 	//Data loading from real image
 
 	//         sim cod in main file
-	strvar1 = "../../../mnist_bin/training/0/40099"; // 28457
+	loaded_img_string = "../../../mnist_bin/training/0/40099"; // 28457
 
-	$readmemb(strvar1, loaded_img);
+	$readmemb(loaded_img_string, loaded_img);
 
 	// for(i = 0; i < 96; i = i + 1)
 	// begin
@@ -433,7 +433,7 @@ begin
 	$display("IMAGE DFFRAM\n");
 	for(i=0; i < LOADED_IMG_SIZE; i=i+1)
 	begin
-		$display("img[%2d] =  %10d %10d %10d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
+		$display("addr = %4h ; imgdff[%2d] =  %10d %10d %10d", IMG_BASE_ADDR + (inst_no << 24)+i*4, i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
 	end
 end
 endtask
@@ -497,7 +497,7 @@ task wb_write;
 		wbs_stb_i	= 1;
 		wbs_cyc_i	= 1;
 		wbs_we_i	= 1;
-		wbs_sel_i	= 4'hf;
+		wbs_sel_i	= 4'hf; // 4'b1111
 		wbs_dat_i	= data;
 		wbs_adr_i	= addr;
 
