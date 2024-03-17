@@ -1,6 +1,6 @@
 test_cases = 21
 
-all: compile ins tb vv gt
+all: compile ins tb vv# gt
 
 compile: ./set-instructions/assembler.cpp ./set-instructions/hex-corrector.cpp ./set-instructions/test-cases-check.cpp
 	g++ -o ./set-instructions/hex-corrector.out ./set-instructions/hex-corrector.cpp
