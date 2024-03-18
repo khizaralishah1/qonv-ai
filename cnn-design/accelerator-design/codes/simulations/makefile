@@ -10,6 +10,10 @@ all3:
 	iverilog -o ./wrap.vvp ../verilog/*.v tb_ren_conv_top_wrapper_2d.v
 	vvp ./wrap.vvp
 
+all4:
+	iverilog -o ./wrap.vvp ../verilog/*.v tb_ren_conv_top_wrapper_unified.v
+	vvp ./wrap.vvp
+
 wave:
 	gtkwave ./wave.vcd ./sigs_wrapper.gtkw
 
