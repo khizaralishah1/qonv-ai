@@ -2,6 +2,27 @@
 //`include "store_image.v"
 //`include "./config_wb.v"
 
+//     sim accdeg cnn f
+// `include "../../../../riscv-design/pipeline/riscv.v"
+// `include "../../../../riscv-design/pipeline/alu.v"
+// `include "../../../../riscv-design/pipeline/registerfilenew.v"
+// `include "../../../../riscv-design/pipeline/instructionmemory.v"
+// `include "../../../../riscv-design/pipeline/adder.v"
+// `include "../../../../riscv-design/pipeline/datamemory.v"
+// `include "../../../../riscv-design/pipeline/immediategen.v"
+// `include "../../../../riscv-design/pipeline/mux2_1.v"
+// `include "../../../../riscv-design/pipeline/pc.v"
+// `include "../../../../riscv-design/pipeline/alucontrol.v"
+// `include "../../../../riscv-design/pipeline/maincontrol.v"
+// `include "../../../../riscv-design/pipeline/ifidreg.v"
+// `include "../../../../riscv-design/pipeline/idexreg.v"
+// `include "../../../../riscv-design/pipeline/exmemreg.v"
+// `include "../../../../riscv-design/pipeline/memwbreg.v"
+// `include "../../../../riscv-design/pipeline/forwardingunit.v"
+// `include "../../../../riscv-design/pipeline/mux3_1.v"
+// `include "../../../../riscv-design/pipeline/hazarddetectionunit.v"
+// `include "../../../../riscv-design/pipeline/mux2_1b.v"
+
 module tb_ren_conv_top_wrapper;
 	parameter NO_OF_INSTS		= 4;
 	parameter KERN_COL_WIDTH 	= 3;
@@ -13,6 +34,7 @@ module tb_ren_conv_top_wrapper;
 	parameter LOADED_IMG_SIZE   = IMG_SIZE/3;
 	parameter KERNEL_DEPTH      = 32;
 	parameter RESULT_DEPTH      = LOADED_IMG_SIZE;
+    parameter MEMORY_DEPTH      = 32; // for riscv
 
     // Wishbone Slave ports (WB MI A)
     reg 			wb_clk_i;
@@ -26,6 +48,7 @@ module tb_ren_conv_top_wrapper;
     wire 			wbs_ack_o;
     wire 	[31:0] 	wbs_dat_o;
 
+    reg             clk_riscv; // later make same clocks?
 	reg				clk;
 	reg				reset;
 
@@ -59,6 +82,12 @@ module tb_ren_conv_top_wrapper;
 	reg [8 * 6 - 1 : 0] img_names [1:0];
 	reg [7:0] img_count;
 
+    //riscv instance
+    reg rst_riscv;
+    reg from_riscv;
+
+    riscv core(clk_riscv, rst_riscv); // later use different clocks for riscv and ren_cnn
+
 	ren_conv_top_wrapper
 	#(
 	.NO_OF_INSTS		(NO_OF_INSTS		),
@@ -83,6 +112,8 @@ module tb_ren_conv_top_wrapper;
     .wbs_dat_o		(wbs_dat_o	)
 	);
 
+
+
 always@* wb_clk_i = clk;
 always@* wb_rst_i = reset;
 
@@ -106,6 +137,9 @@ parameter VERBOSE			= 3;
 //-----------------------------------------------------------------------------
 // Main test bench
 //-----------------------------------------------------------------------------
+
+always #1 clk_riscv = ~clk_riscv;
+
 initial
 begin
 	$dumpfile("wave.vcd");
@@ -120,6 +154,30 @@ begin
     wbs_adr_i	= 0;
 	reset		= 0;
 
+
+    $readmemh("../../../../riscv-design/pipeline/set-instructions/corrected-test-22.hex", core.insmem.memfile);
+    clk_riscv   = 0;
+    rst_riscv   = 1;
+    #3
+    rst_riscv   = 0;
+
+    //wait until riscv puts all the image names in its data memory
+    #2000
+
+    if (VERBOSE > 0)
+    begin
+        
+        for(i=0; i < MEMORY_DEPTH; i=i+1)
+        begin
+            $display("INSTRUCTION MEMORY[%2d] = %8b", i, core.insmem.memfile[i]);
+        end
+
+        for(i=0; i < MEMORY_DEPTH; i=i+1)
+        begin
+            $display("DATA MEMORY[%2d] = %8b", i, core.datamem.memfile[i]);
+        end
+    end
+
 	repeat(2) @(posedge clk);
 	#1 reset		= 1;
 	repeat(2) @(posedge clk);
@@ -130,7 +188,8 @@ begin
 	// Configurations
 	config_test(0);
 
-	run_count = 2;
+	run_count  = 1;
+    from_riscv = 1;
 
 	//risc should put the image names in its data memory, from where CNN can extract them one by one (or 4 each time if 4 instances of top module!)
 	
@@ -141,7 +200,8 @@ begin
 	iter = 0;
 	repeat(run_count)
 	begin
-		load_data(img_names[img_count]);
+		//load_data(from_riscv, img_names[img_count]);
+        load_data(from_riscv, img_count);
 		img_count = img_count+1;
 		write_image(iter);
 		write_kernel(iter);
@@ -297,7 +357,7 @@ begin
 	for(i=0; i < result_cols; i=i+1)
 	begin
 		wb_read(RES_BASE_ADDR+ (inst_no << 24)+i*4, result[i]);
-		$display("addr = %4h ; result[%2d] --> %10d\n", RES_BASE_ADDR+ (inst_no << 24)+i*4, i, result[i]);
+		//$display("addr = %4h ; result[%2d] --> %10d\n", RES_BASE_ADDR+ (inst_no << 24)+i*4, i, result[i]);
 	end
 		
 end
@@ -325,7 +385,7 @@ begin
 				//					  c+ks*cols, conv_result[c+ks*cols],ks, c, kc, 
 				//					  image[c+kc], kernels[ks*(4<<kern_addr_mode)+kc]);
 			end
-			if(VERBOSE>2) $display("conv_result[%2d] = %10d", c+ks*cols, conv_result[c+ks*cols]);//$display("");
+			if(VERBOSE>3) $display("conv_result[%2d] = %10d", c+ks*cols, conv_result[c+ks*cols]);//$display("");
 		end
 	end
 	// max pool
@@ -339,7 +399,7 @@ begin
 				//$display("actual result aana chaiye: %10d\n", ( (conv_result[ks*cols + c] > conv_result[ks*cols + c+1]) ? conv_result[ks*cols + c] : conv_result[ks*cols + c+1]) );
 				//$display("lt_sum[%2d] = %5d\n", ....);
 				
-				if(VERBOSE>1)$display("result_sim[%0d] = %0d", ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
+				if(VERBOSE>3)$display("result_sim[%0d] = %0d", ks*cols/2 + c/2, result_sim[ks*cols/2 + c/2]);
 			end
 		end
 	else
@@ -353,12 +413,25 @@ end
 endtask
 //-----------------------------------------------------------------------------
 task load_data;
-input [8 * 5 - 1:0] img_name; // 5 decimal digits -> max is 99,999 = 17 bits
+input input_from_riscv;
+input [8 * 5 - 1:0] img_addr; // 5 decimal digits -> max is 99,999 = 17 bits
+reg [8 * 5 - 1 : 0] img_full_name;
 begin
-	//Data loading from real image
+    //when image address is located in riscv data memory, then image name is in 5 locations, each is 1-byte
+    if (input_from_riscv == 1)
+    begin
+        img_full_name = {core.datamem.memfile[img_addr+4], core.datamem.memfile[img_addr+3], core.datamem.memfile[img_addr+2], core.datamem.memfile[img_addr+1], core.datamem.memfile[img_addr]};
+        // 5 characters are stored sequentially
+        $display("img full name is %s",img_full_name);
 
-	//         sim cod in main file
-	loaded_img_string = {"../../../mnist_bin/training/0/", img_name}; // 28457
+    end
+    else
+    begin
+      img_full_name = img_addr;
+    end
+    
+	//                    sim cod in main file
+	loaded_img_string = {"../../../mnist_bin/training/0/", img_full_name}; // 28457
 
 	$readmemb(loaded_img_string, loaded_img);
 
@@ -372,7 +445,7 @@ begin
 		//image[i/3] =  {loaded_img[i+2], loaded_img[i+1],loaded_img[i]};
         image[i/3] =  {loaded_img[i], loaded_img[i+1],loaded_img[i+2]};
 		//$display("image[%2d] => [23:16]->%2d, [15:8]->%2d, [7:0]->%2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
-		$display("image[%2d] = %3d %3d %3d", i/3, image[i/3][7:0], image[i/3][15:8], image[i/3][23:16]);
+		if (VERBOSE > 3) $display("image[%2d] = %3d %3d %3d", i/3, image[i/3][7:0], image[i/3][15:8], image[i/3][23:16]);
 		//$display("image[%2d] => %2d, %2d, %2d\n", i/3, image[i/3][23:16], image[i/3][15:8], image[i/3][7:0]);
 		//$display("image[%2d] => %10d\n", i/3, image[i/3]);
 	end
@@ -398,11 +471,14 @@ begin
 		wb_write(IMG_BASE_ADDR + (inst_no << 24)+i*4, {8'd0, image[i]});
 	end
 
-	$display("IMAGE DFFRAM\n");
-	for(i=0; i < LOADED_IMG_SIZE; i=i+1)
-	begin
-		$display("addr = %4h ; imgdff[%2d] =  %10d %10d %10d", IMG_BASE_ADDR + (inst_no << 24)+i*4, i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
-	end
+    if (VERBOSE > 3)
+    begin
+        $display("IMAGE DFFRAM\n");
+        for(i=0; i < LOADED_IMG_SIZE; i=i+1)
+        begin
+            $display("addr = %4h ; imgdff[%2d] =  %10d %10d %10d", IMG_BASE_ADDR + (inst_no << 24)+i*4, i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
+        end
+    end
 end
 endtask
 //-----------------------------------------------------------------------------
@@ -412,11 +488,14 @@ begin
 	for(i=0; i < KERNEL_DEPTH; i=i+1)
 		wb_write(KERN_BASE_ADDR+ (inst_no << 24)+i*4, {8'd0,kernels[i]});
 	
-	$display("KERNEL DFFRAM\n");
-	for(i=0; i < KERNEL_DEPTH; i=i+1)
-	begin
-		$display("addr = %4h ; kerndff[%2d] =  %10d %10d %10d", KERN_BASE_ADDR+ (inst_no << 24)+i*4, i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][7:0]);
-	end
+    if (VERBOSE > 3)
+    begin
+        $display("KERNEL DFFRAM\n");
+        for(i=0; i < KERNEL_DEPTH; i=i+1)
+        begin
+            $display("addr = %4h ; kerndff[%2d] =  %10d %10d %10d", KERN_BASE_ADDR+ (inst_no << 24)+i*4, i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][7:0]);
+        end
+    end
 end
 endtask
 //-----------------------------------------------------------------------------

@@ -14,6 +14,10 @@ all4:
 	iverilog -o ./wrap.vvp ../verilog/*.v tb_ren_conv_top_wrapper_unified.v
 	vvp ./wrap.vvp
 
+allriscv:
+	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv.v
+	vvp ./wrap.vvp
+
 wave:
 	gtkwave ./wave.vcd ./sigs_wrapper.gtkw
 
