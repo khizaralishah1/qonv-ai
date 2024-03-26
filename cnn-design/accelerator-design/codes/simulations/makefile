@@ -18,6 +18,18 @@ allriscv:
 	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv.v
 	vvp ./wrap.vvp
 
+allriscv2d:
+	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv_2dimg.v
+	vvp ./wrap.vvp
+
+allriscv2dpll:
+	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv_2dimg_parallel.v
+	vvp ./wrap.vvp
+
+allv1:
+	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv_2dimg_version1.v
+	vvp ./wrap.vvp
+
 wave:
 	gtkwave ./wave.vcd ./sigs_wrapper.gtkw
 

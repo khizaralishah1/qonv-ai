@@ -133,7 +133,7 @@ parameter REG_BASE_ADDR 	= 32'h3000_0000;
 parameter IMG_BASE_ADDR 	= 32'h3004_0000;
 parameter KERN_BASE_ADDR 	= 32'h3002_0000;
 parameter RES_BASE_ADDR 	= 32'h3003_0000;
-parameter VERBOSE			= 3;
+parameter VERBOSE			= 5;
 //-----------------------------------------------------------------------------
 // Main test bench
 //-----------------------------------------------------------------------------
@@ -187,6 +187,7 @@ begin
 
 	// Configurations
 	config_test(0);
+	//config_test(1);
 
 	run_count  = 1;
     from_riscv = 1;
@@ -259,14 +260,17 @@ begin
 	else if(test_no==1)		// Typical case with even cols and max pool enabled
 	begin
 	kern_cols			= 3;
-    cols				= 8;
-    kerns				= 3;
+    cols				= LOADED_IMG_SIZE;
+    kerns				= 1;
     stride				= 1;
     kern_addr_mode		= 0;
     shift				= 0; // 12
     en_max_pool			= 1;
     mask				= 3'b111;
     result_cols			= en_max_pool ? cols*kerns/2 : cols*kerns;
+	//names of images
+	img_names[0]		= "40099";
+	img_names[1]		= "28457";
 	end
 	else if(test_no==2)	// Maxpool disabled
 	begin
