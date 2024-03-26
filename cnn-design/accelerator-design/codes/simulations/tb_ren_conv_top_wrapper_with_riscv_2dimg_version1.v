@@ -146,8 +146,8 @@ always #1 clk_riscv = ~clk_riscv;
 
 initial
 begin
-	$dumpfile("wave.vcd");
-	$dumpvars(0, tb_ren_conv_top_wrapper);
+	$dumpfile("wavev1.vcd");
+	$dumpvars(5, tb_ren_conv_top_wrapper);
 
     wb_clk_i	= 0;
     wbs_stb_i	= 0;
@@ -168,7 +168,7 @@ begin
     //wait until riscv puts all the image names in its data memory
     #2000
 
-    if (VERBOSE > 0)
+    if (VERBOSE > 10)
     begin
         
         for(i=0; i < MEMORY_DEPTH; i=i+1)
@@ -209,23 +209,23 @@ begin
         load_data(from_riscv, img_count);
 		img_count = img_count+1;
         write_kernel(0);
-        iter = 5;
-        repeat( 1 ) // IMG_COL_SIZE / NO_OF_INSTS - 1
+        iter = 0;
+        repeat( 25 ) // IMG_COL_SIZE / NO_OF_INSTS - 1
         begin
-            for (i = 0; i < 12; i = i+1)
-			begin
-				$display("seer before img %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][7:0]);
-			end
+            // for (i = 0; i < 12; i = i+1)
+			// begin
+			// 	$display("seer before img %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][7:0]);
+			// end
+            reset  = 0;
             write_image(iter);
 
-            
                        //        IMG_ROW_SIZE 1      1          0                       0        1        111
             config_hw(0,kern_cols-1,cols-1,kerns-1,stride,kern_addr_mode,result_cols-1,shift,en_max_pool,mask, 1);
-            repeat(10000) @(posedge clk);
-            for (i = 0; i < 12; i = i+1)
-			begin
-				$display("seer mid %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][7:0]);
-			end
+            repeat(1000) @(posedge clk);
+            // for (i = 0; i < 12; i = i+1)
+			// begin
+			// 	$display("seer mid %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][7:0]);
+			// end
 
             poll_done(0);
 
@@ -246,34 +246,32 @@ begin
 			// 	$display("seek %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.kerns_dffram.r[i][7:0]);
 			// end
 
-            for (i = 0; i < 12; i = i+1)
-			begin
-				$display("seer after %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][7:0]);
-			end
+            // for (i = 0; i < 12; i = i+1)
+			// begin
+			// 	$display("seer after %3d -> %3d %3d %3d", i, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.results_dffram.r[i][7:0]);
+			// end
 
             config_hw(0,0,0,0,0,0,0,0,0,0,0);
 
+            wb_write(REG_BASE_ADDR+ (0 << 24),2);	// Set soft reset
 			wb_write(REG_BASE_ADDR+ (0 << 24),0);	// Clear Start
-			wb_write(REG_BASE_ADDR+ (3 << 24),2);	// Set soft reset
-            
+			//wb_write(REG_BASE_ADDR+ (3 << 24),2);	// Set soft reset
 			
             for(i=0; i < result_cols; i=i+1)
             begin
                 result_sim[i]	<= 0;
                 result[i]		<= 0;
             end
-            $display("here");
-            $display("here22");
+            // $display("here");
+            // $display("here22");
 			wb_write(REG_BASE_ADDR+ (0 << 24),0);	// Clear soft reset
-            $display("here2");
+            //$display("here2");
 
             iter = iter + 1;
             
-
             #2 reset  = 1;
-            repeat(5000) @(posedge clk);
-			reset  = 0;
-            $display("-------- here ----------", iter);
+            repeat(500) @(posedge clk);
+            //$display("-------- here ----------", iter);
             //ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.done = 0;
             //ren_conv_top_wrapper_inst.ren_conv_top_inst_0.ren_conv_inst.done = 0;
         end
@@ -372,7 +370,7 @@ begin
 		wb_read(REG_BASE_ADDR + (inst_no << 24), data_);
 		
 		cnt=cnt+1;
-		$display("wbs_dat_o = %3d",wbs_dat_o);
+		//$display("wbs_dat_o = %3d",wbs_dat_o);
 		if(cnt>100)
 		begin
 			$display("Stuck in polling for done... Finishing");
@@ -543,11 +541,12 @@ begin
 
     if (VERBOSE > 3)
     begin
-        // $display("IMAGE DFFRAM -- %3d", next_iter);
-        // for(i=0; i < IMG_ROW_SIZE; i=i+1)
-        // begin
-        //     $display("addr = %4h ; imgdff[%2d] =  %10d %10d %10d", IMG_BASE_ADDR + (0 << 24)+i*4, IMG_ROW_SIZE*0 + i + next_iter*IMG_ROW_SIZE, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
-        // end
+        $display("IMAGE DFFRAM -- %3d", next_iter);
+        for(i=0; i < IMG_ROW_SIZE; i=i+1)
+        begin
+            $display("addr = %4h ; imgdff[%2d] =  %20d", IMG_BASE_ADDR + (0 << 24)+i*4, IMG_ROW_SIZE*0 + i + next_iter*IMG_ROW_SIZE, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i]);
+            //$display("addr = %4h ; imgdff[%2d] =  %20d", IMG_BASE_ADDR + (0 << 24)+i*4, IMG_ROW_SIZE*0 + i + next_iter*IMG_ROW_SIZE, ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][23:16], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][15:8], ren_conv_top_wrapper_inst.ren_conv_top_inst_0.img_dffram.r[i][7:0]);
+        end
     end
 end
 endtask
@@ -558,9 +557,9 @@ begin
 	for(i=0; i < KERNEL_DEPTH; i=i+1)
     begin
 		wb_write(KERN_BASE_ADDR+ (0 << 24)+i*4, {8'd0,kernels[i]});
-        wb_write(KERN_BASE_ADDR+ (1 << 24)+i*4, {8'd0,kernels[i]});
-        wb_write(KERN_BASE_ADDR+ (2 << 24)+i*4, {8'd0,kernels[i]});
-        wb_write(KERN_BASE_ADDR+ (3 << 24)+i*4, {8'd0,kernels[i]});
+        //wb_write(KERN_BASE_ADDR+ (1 << 24)+i*4, {8'd0,kernels[i]});
+        //wb_write(KERN_BASE_ADDR+ (2 << 24)+i*4, {8'd0,kernels[i]});
+        //wb_write(KERN_BASE_ADDR+ (3 << 24)+i*4, {8'd0,kernels[i]});
     end
 
     if (VERBOSE > 5)
@@ -652,7 +651,7 @@ task wb_write;
 		@(posedge clk);
 
 		while(~wbs_ack_o)	@(posedge clk);
-		//$display("WISHBONE WRITE: Address=0x%h, Data=0x%h",addr,data);
+		//$display("WISHBONE WRITE: Address=0x%h, Data= %15d",addr,data);
 		//$display("WISHBONE WRITE: Address=0x%h, Data= %3d %3d %3d",addr,data[23:16],data[15:8], data[7:0]);
 		#1;
 		wbs_stb_i	= 1'bx;
@@ -689,7 +688,7 @@ task wb_read;
 		wbs_sel_i	= 4'hx;
 		wbs_adr_i	= 32'hxxxx_xxxx;
 		data		= wbs_dat_o;
-		$display("WISHBONE READ: Address=0x%h, Data= %3d, wbs_dat_o= %3d",addr,data,wbs_dat_o);
+		//$display("WISHBONE READ: Address=0x%h, Data= %3d, wbs_dat_o= %3d",addr,data,wbs_dat_o);
 
 	end
 endtask

@@ -30,6 +30,10 @@ allv1:
 	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv_2dimg_version1.v
 	vvp ./wrap.vvp
 
+allv2:
+	iverilog -o ./wrap.vvp ../verilog/*.v ../../../../riscv-design/pipeline/*[^t][a-zA-Z0-9].v tb_ren_conv_top_wrapper_with_riscv_2dimg_version2.v
+	vvp ./wrap.vvp
+
 wave:
 	gtkwave ./wave.vcd ./sigs_wrapper.gtkw
 
